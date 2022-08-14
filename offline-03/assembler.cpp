@@ -1,10 +1,10 @@
 #include<bits/stdc++.h>
 
-#define T1 "0001"
-#define T2 "0010"
-#define T3 "0011"
-#define T4 "0100"
-#define T0 "0101"
+#define T0 "0001"
+#define T1 "0010"
+#define T2 "0011"
+#define T3 "0100"
+#define T4 "0101"
 #define ZERO "0000"
 #define INSTRUCTION_SIZE 1
 
