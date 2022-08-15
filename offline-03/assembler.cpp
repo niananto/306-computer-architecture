@@ -1,12 +1,13 @@
 #include<bits/stdc++.h>
+// #include<boost/algorithm/string.hpp>
 
+#define ZERO "0000"
 #define T0 "0001"
 #define T1 "0010"
 #define T2 "0011"
 #define T3 "0100"
 #define T4 "0101"
-#define ZERO "0000"
-#define INSTRUCTION_SIZE 1
+#define SP "0110"
 
 #define LW "0000"
 #define BNEQ "0001"
@@ -27,230 +28,240 @@
 
 using namespace std;
 
-string convert(string line) {
-    string instruction="";
-    vector<string> v;
-    stringstream ss(line);
+map<string, int> labelLineNo;
+vector< pair<string, int> > branchLabelCalls;
+vector< pair<string, int> > jumpLabelCalls;
+
+static inline void ltrim(string &s) {
+    s.erase(s.begin(), find_if(s.begin(), s.end(), [](unsigned char ch) {
+        return !isspace(ch);
+    }));
+}
+
+static inline void rtrim(string &s) {
+    s.erase(find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+        return !isspace(ch);
+    }).base(), s.end());
+}
+
+static inline string trim(string &s) {
+    ltrim(s);
+    rtrim(s);
+
+    return s;
+}
+
+vector<string> stringSplitter(const string& str, const char& delim) {
+    stringstream ss(str);
     string item;
-    if(getline(ss, item, ' ')) {
-        if (item == "lw") instruction += LW;
-        else if (item == "bneq") instruction += BNEQ;
-        else if (item == "subi") instruction += SUBI;
-        else if (item == "beq") instruction += BEQ;
-        else if (item == "j") instruction += J;
-        else if (item == "addi") instruction += ADDI;
-        else if (item == "sw") instruction += SW;
-        else if (item == "or") instruction += OR;
-        else if (item == "add") instruction += ADD;
-        else if (item == "and") instruction += AND;
-        else if (item == "ori") instruction += ORI;
-        else if (item == "nor") instruction += NOR;
-        else if (item == "andi") instruction += ANDI;
-        else if (item == "sub") instruction += SUB;
-        else if (item == "sll") instruction += SLL;
-        else if (item == "srl") instruction += SRL;
-        else return "Error";
+    vector<string> elems;
+    while (getline(ss, item, delim)) {
+        elems.push_back(trim(item));
     }
 
-    while (getline(ss,item,',')) {
-        v.push_back(item);
+    return elems;
+}
+
+string determineRegister(string regName) {    
+    if (regName == "$t0") return T0;
+    else if (regName == "$t1") return T1;
+    else if (regName == "$t2") return T2;
+    else if (regName == "$t3") return T3;
+    else if (regName == "$t4") return T4;
+    else if (regName == "$zero") return ZERO;
+
+    return "ERROR";
+}
+
+string toBinary(int n, int len) {
+    string r;
+    unsigned u = n;
+
+    while(u!=0) {r=(u%2==0 ?"0":"1")+r; u/=2;}
+
+    if (r.size() < len) {
+        while (r.size() != len) {
+            r = "0" + r;
+        }
+    } else if (r.size() > len) {
+        r = r.substr(r.size() - len, len);
     }
     
+    return r;
+}
+
+string convert(string line) {
+    static unsigned lineNo = 0;
+    string instruction = "";
+    string withoutLabel = "";
+
+    if (line.back() == ':') {
+        labelLineNo[line.substr(0, line.size() - 1)] = lineNo;
+        return "ERROR";
+    }
+
+    // first look for labels
+    vector<string> labelSplitted = stringSplitter(line, ':');
+    if (labelSplitted.size() > 1) {
+        // label found
+        withoutLabel = labelSplitted[1];
+
+        // add label to map
+        labelLineNo[labelSplitted[0]] = lineNo;
+
+    } else {
+        // no label found
+        withoutLabel = line;
+    }
+
+    // split with space, look for operation
+    string opcode = stringSplitter(withoutLabel, ' ')[0];
+    string withoutComment = stringSplitter(withoutLabel, '/')[0];
+    vector<string> commaSplitted = 
+        stringSplitter(withoutComment.substr(opcode.size(), withoutComment.size()-opcode.size()), ',');
+
+    if (opcode == "lw") instruction += LW;
+    else if (opcode == "bneq") instruction += BNEQ;
+    else if (opcode == "subi") instruction += SUBI;
+    else if (opcode == "beq") instruction += BEQ;
+    else if (opcode == "j") instruction += J;
+    else if (opcode == "addi") instruction += ADDI;
+    else if (opcode == "sw") instruction += SW;
+    else if (opcode == "or") instruction += OR;
+    else if (opcode == "add") instruction += ADD;
+    else if (opcode == "and") instruction += AND;
+    else if (opcode == "ori") instruction += ORI;
+    else if (opcode == "nor") instruction += NOR;
+    else if (opcode == "andi") instruction += ANDI;
+    else if (opcode == "sub") instruction += SUB;
+    else if (opcode == "sll") instruction += SLL;
+    else if (opcode == "srl") instruction += SRL;
+    else return "ERROR";
+
+    // check what type of operation it is
     // R format : sub, or, and, add, nor
-    if((instruction == SUB)||(instruction == OR)||(instruction == AND)||(instruction == ADD)||(instruction == NOR)) {
-        // rs
-        if (v[1] == "$t0") instruction += T0;
-        else if (v[1] == "$t1") instruction += T1;
-        else if (v[1] == "$t2") instruction += T2;
-        else if (v[1] == "$t3") instruction += T3;
-        else if (v[1] == "$t4") instruction += T4;
-        else if (v[1] == "$zero") instruction += ZERO;       
+    if ((instruction == SUB)||(instruction == OR)||(instruction == AND)||(instruction == ADD)||(instruction == NOR)) {
+        instruction += determineRegister(commaSplitted[1]);
+        instruction += determineRegister(commaSplitted[2]);
+        instruction += determineRegister(commaSplitted[0]);
 
-        // rt
-        if (v[2] == "$t0") instruction += T0;
-        else if (v[2] == "$t1") instruction += T1;
-        else if (v[2] == "$t2") instruction += T2;
-        else if (v[2] == "$t3") instruction += T3;
-        else if (v[2] == "$t4") instruction += T4;
-        else if (v[2] == "$zero") instruction += ZERO;       
-
-        // rd
-        if (v[0] == "$t0") instruction += T0;
-        else if (v[0] == "$t1") instruction += T1;
-        else if (v[0] == "$t2") instruction += T2;
-        else if (v[0] == "$t3") instruction += T3;
-        else if (v[0] == "$t4") instruction += T4;
-        else if (v[0] == "$zero") instruction += ZERO;
-
+        lineNo++;
         return instruction;
     }
 
     // S format : sll, srl
     else if((instruction == SLL)||(instruction == SRL)){
+        // rs
+        instruction += determineRegister(commaSplitted[1]);     
 
-        if (v[1] == "$t0") instruction += T0;
-        else if (v[1] == "$t1") instruction += T1;
-        else if (v[1] == "$t2") instruction += T2;
-        else if (v[1] == "$t3") instruction += T3;
-        else if (v[1] == "$t4") instruction += T4;
-        else if (v[1] == "$zero") instruction += ZERO;       
+        // rd
+        instruction += determineRegister(commaSplitted[0]);
 
-        if (v[0] == "$t0") instruction += T0;
-        else if (v[0] == "$t1") instruction += T1;
-        else if (v[0] == "$t2") instruction += T2;
-        else if (v[0] == "$t3") instruction += T3;
-        else if (v[0] == "$t4") instruction += T4;
-        else if (v[0] == "$zero") instruction += ZERO;              
+        // shamt
+        instruction += toBinary(stoi(commaSplitted[2]), 4);
 
-        int const_int=stoi(v[2]);
-        string const_str=LW;
-
-        for(int j=0; const_int>0; j++) {    
-            const_str[const_str.size()-j-1]=(const_int%2)?'1':'0';
-            const_int= const_int/2;  
-        }    
-
-        instruction += const_str;
-
+        lineNo++;
         return instruction;
     }
-    
+
     // I format constant : ori, addi, andi, subi
     else if((instruction == ORI)||(instruction == ADDI)||(instruction == ANDI)||(instruction == SUBI)){
         // rs
-        if (v[1] == "$t0") instruction += T0;
-        else if (v[1] == "$t1") instruction += T1;
-        else if (v[1] == "$t2") instruction += T2;
-        else if (v[1] == "$t3") instruction += T3;
-        else if (v[1] == "$t4") instruction += T4;
-        else if (v[1] == "$zero") instruction += ZERO;       
+        instruction += determineRegister(commaSplitted[1]);       
 
         // rd
-        if (v[0] == "$t0") instruction += T0;
-        else if (v[0] == "$t1") instruction += T1;
-        else if (v[0] == "$t2") instruction += T2;
-        else if (v[0] == "$t3") instruction += T3;
-        else if (v[0] == "$t4") instruction += T4;
-        else if (v[0] == "$zero") instruction += ZERO;              
+        instruction += determineRegister(commaSplitted[0]);             
 
-        int const_int=stoi(v[2]);
-        string const_str=LW;
-
-        for(int j=0; const_int>0; j++) {    
-            const_str[const_str.size()-j-1]=(const_int%2)?'1':'0';
-            const_int= const_int/2;  
-        }    
-
-        instruction += const_str;
-
+        // constant
+        instruction += toBinary(stoi(commaSplitted[2]), 4);
+        
+        lineNo++;
         return instruction;
     }
 
     // I format control : beq, bneq
     else if((instruction == BEQ)||(instruction == BNEQ)){
+        instruction += determineRegister(commaSplitted[0]);
+        instruction += determineRegister(commaSplitted[1]);
 
-        if (v[1] == "$t0") instruction += T0;
-        else if (v[1] == "$t1") instruction += T1;
-        else if (v[1] == "$t2") instruction += T2;
-        else if (v[1] == "$t3") instruction += T3;
-        else if (v[1] == "$t4") instruction += T4;
-        else if (v[1] == "$zero") instruction += ZERO;       
-        // instruction += " "; //for debugging
-
-        if (v[0] == "$t0") instruction += T0;
-        else if (v[0] == "$t1") instruction += T1;
-        else if (v[0] == "$t2") instruction += T2;
-        else if (v[0] == "$t3") instruction += T3;
-        else if (v[0] == "$t4") instruction += T4;
-        else if (v[0] == "$zero") instruction += ZERO;              
-        // instruction += " "; //for debugging
-
-        int const_int=stoi(v[2])*INSTRUCTION_SIZE; //+1?
-        string const_str=LW;
-
-        for(int j=0; const_int>0; j++) {    
-            const_str[const_str.size()-j-1]=(const_int%2)?'1':'0';
-            const_int= const_int/2;  
-        }    
-
-        instruction += const_str;
-
+        // offset
+        branchLabelCalls.push_back(make_pair(commaSplitted[2], lineNo));
+        
+        lineNo++;
         return instruction;
     }
 
     // I format memory : sw, lw
     else if((instruction == SW)||(instruction == LW)){
-
-        string constant;
-        stringstream ss2(v[1]);
-        if (getline(ss2,item,'(')) {
-            constant=item;
-        }
-        if (getline(ss2,item,')')) {
-            if (item == "$t0") instruction+=T0;
-            else if (item == "$t1") instruction+=T1;
-            else if (item == "$t2") instruction+=T2;
-            else if (item == "$t3") instruction+=T3;
-            else if (item == "$t4") instruction+=T4;
-            else if (item == "$zero") instruction+=ZERO;
-        }
+        vector<string> parenthesisSplitted1 = stringSplitter(commaSplitted[1], '(');
+        vector<string> parenthesisSplitted2 = stringSplitter(parenthesisSplitted1[1], ')');
+        instruction += determineRegister(parenthesisSplitted2[0]);
+        instruction += determineRegister(commaSplitted[0]);
+        instruction += toBinary(stoi(parenthesisSplitted1[0]), 4);
         
-        if (v[0] == "$t0") instruction+=T0;
-        else if (v[0] == "$t1") instruction+=T1;
-        else if (v[0] == "$t2") instruction+=T2;
-        else if (v[0] == "$t3") instruction+=T3;
-        else if (v[0] == "$t4") instruction+=T4;
-        else if (v[0] == "$zero") instruction+=ZERO;              
-        // instruction+=" "; //for debugging
-
-        int const_int=stoi(constant)*INSTRUCTION_SIZE;
-        string const_str="0000";
-
-        for(int j=0; const_int>0; j++) {    
-            const_str[const_str.size()-j-1]=(const_int%2)?'1':'0';
-            const_int= const_int/2;  
-        }    
-
-        instruction+=const_str;
-
+        lineNo++;
         return instruction;
     }
 
     // J format : j
     else if((instruction == J)){
-
-        int const_int=stoi(v[0])*INSTRUCTION_SIZE;
-        string const_str="00000000";
-
-        for(int j=0; const_int>0; j++) {    
-            const_str[const_str.size()-j-1]=(const_int%2)?'1':'0';
-            const_int= const_int/2;  
-        }    
-
-        instruction += const_str;
-   
-        // instruction += " "; //for debugging
-
-        instruction += LW;
-
+        // address
+        jumpLabelCalls.push_back(make_pair(commaSplitted[0], lineNo));
+        
+        lineNo++;
         return instruction;
     }
 
-    else return instruction;
+    cout << "ERROR " << lineNo << " " << line << endl;
+    return "ERROR";
 }
 
-int main () 
-{
-    string line;
+int main () {
     ifstream fin("assembly.txt");
-    ofstream fout("machine.txt");
+    vector<string> machineCodes;
+
     if (fin.is_open()) {
+        string line;
         while (getline (fin,line)) {
-            fout<<convert(line)<<endl;
+            string machineCode = convert(line);
+            if (machineCode != "ERROR") {
+                machineCodes.push_back(machineCode);
+            }
         }
+
+        // iterate over both labelCalls
+        for (auto a : branchLabelCalls) {
+            string label = a.first;
+            int lineNo = a.second;
+            int offset = labelLineNo[label] - (lineNo + 1);
+
+            // convert to binary
+            string binary = toBinary(offset, 4);
+
+            // add to machineCodes
+            machineCodes[lineNo] += binary;
+        }
+        for (auto a : jumpLabelCalls) {
+            string label = a.first;
+            int lineNo = a.second;
+            int offset = labelLineNo[label];
+
+            // convert to binary
+            string binary = toBinary(offset, 8);
+
+            // add to machineCodes
+            machineCodes[lineNo] += binary + "0000";
+        }
+
+        ofstream fout("machine.txt");
+        for (string m : machineCodes) {
+            fout << m << endl;
+        }
+        fout.close();
+
         fin.close();
     }
-    else cout<<"Unable to open file"<<endl; 
-    fout.close();
+    else cout << "Unable to open file" << endl;
+
     return 0;
 }
