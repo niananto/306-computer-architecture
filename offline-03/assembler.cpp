@@ -1,30 +1,30 @@
 #include<bits/stdc++.h>
 // #include<boost/algorithm/string.hpp>
 
-#define ZERO "0000"
-#define T0 "0001"
-#define T1 "0010"
-#define T2 "0011"
-#define T3 "0100"
-#define T4 "0101"
-#define SP "0110"
+#define ZERO "0"
+#define T0 "1"
+#define T1 "2"
+#define T2 "3"
+#define T3 "4"
+#define T4 "5"
+#define SP "6"
 
-#define LW "0000"
-#define BNEQ "0001"
-#define SUBI "0010"
-#define BEQ "0011"
-#define J "0100"
-#define ADDI "0101"
-#define SW "0110"
-#define OR "0111"
-#define ADD "1000"
-#define AND "1001"
-#define ORI "1010"
-#define NOR "1011"
-#define ANDI "1100"
-#define SUB "1101"
-#define SLL "1110"
-#define SRL "1111"
+#define LW "0"
+#define BNEQ "1"
+#define SUBI "2"
+#define BEQ "3"
+#define J "4"
+#define ADDI "5"
+#define SW "6"
+#define OR "7"
+#define ADD "8"
+#define AND "9"
+#define ORI "a"
+#define NOR "b"
+#define ANDI "c"
+#define SUB "d"
+#define SLL "e"
+#define SRL "f"
 
 using namespace std;
 
@@ -90,6 +90,48 @@ string toBinary(int n, int len) {
     return r;
 }
 
+string toHex(int n, int len) {
+    string r = toBinary(n, len);
+    string hex = "";
+    for (int i = 0; i < r.size(); i += 4) {
+        string temp = r.substr(i, 4);
+        if (temp == "0000") {
+            hex += "0";
+        } else if (temp == "0001") {
+            hex += "1";
+        } else if (temp == "0010") {
+            hex += "2";
+        } else if (temp == "0011") {
+            hex += "3";
+        } else if (temp == "0100") {
+            hex += "4";
+        } else if (temp == "0101") {
+            hex += "5";
+        } else if (temp == "0110") {
+            hex += "6";
+        } else if (temp == "0111") {
+            hex += "7";
+        } else if (temp == "1000") {
+            hex += "8";
+        } else if (temp == "1001") {
+            hex += "9";
+        } else if (temp == "1010") {
+            hex += "a";
+        } else if (temp == "1011") {
+            hex += "b";
+        } else if (temp == "1100") {
+            hex += "c";
+        } else if (temp == "1101") {
+            hex += "d";
+        } else if (temp == "1110") {
+            hex += "e";
+        } else if (temp == "1111") {
+            hex += "f";
+        }
+    }
+    return hex;
+}
+
 string convert(string line) {
     static unsigned lineNo = 0;
     string instruction = "";
@@ -136,6 +178,8 @@ string convert(string line) {
     else if (opcode == "sub") instruction += SUB;
     else if (opcode == "sll") instruction += SLL;
     else if (opcode == "srl") instruction += SRL;
+    else if (opcode == "push") instruction += SW;
+    else if (opcode == "pop") instruction += LW;
     else return "ERROR";
 
     // check what type of operation it is
@@ -158,7 +202,7 @@ string convert(string line) {
         instruction += determineRegister(commaSplitted[0]);
 
         // shamt
-        instruction += toBinary(stoi(commaSplitted[2]), 4);
+        instruction += toHex(stoi(commaSplitted[2]), 4);
 
         lineNo++;
         return instruction;
@@ -173,7 +217,7 @@ string convert(string line) {
         instruction += determineRegister(commaSplitted[0]);             
 
         // constant
-        instruction += toBinary(stoi(commaSplitted[2]), 4);
+        instruction += toHex(stoi(commaSplitted[2]), 4);
         
         lineNo++;
         return instruction;
@@ -193,11 +237,17 @@ string convert(string line) {
 
     // I format memory : sw, lw
     else if((instruction == SW)||(instruction == LW)){
-        vector<string> parenthesisSplitted1 = stringSplitter(commaSplitted[1], '(');
-        vector<string> parenthesisSplitted2 = stringSplitter(parenthesisSplitted1[1], ')');
-        instruction += determineRegister(parenthesisSplitted2[0]);
-        instruction += determineRegister(commaSplitted[0]);
-        instruction += toBinary(stoi(parenthesisSplitted1[0]), 4);
+        if (commaSplitted.size() > 1) {
+            vector<string> parenthesisSplitted1 = stringSplitter(commaSplitted[1], '(');
+            vector<string> parenthesisSplitted2 = stringSplitter(parenthesisSplitted1[1], ')');
+            instruction += determineRegister(parenthesisSplitted2[0]);
+            instruction += determineRegister(commaSplitted[0]);
+            instruction += toHex(stoi(parenthesisSplitted1[0]), 4);
+        } else { // push pop
+            instruction += SP;
+            instruction += determineRegister(commaSplitted[0]);
+            instruction += "0";
+        }
         
         lineNo++;
         return instruction;
@@ -223,10 +273,14 @@ int main () {
     if (fin.is_open()) {
         string line;
         while (getline (fin,line)) {
+            if (line.size() == 0) continue;
+
             string machineCode = convert(line);
             if (machineCode != "ERROR") {
                 machineCodes.push_back(machineCode);
             }
+
+            // cout << line << endl;
         }
 
         // iterate over both labelCalls
@@ -235,25 +289,26 @@ int main () {
             int lineNo = a.second;
             int offset = labelLineNo[label] - (lineNo + 1);
 
-            // convert to binary
-            string binary = toBinary(offset, 4);
+            // convert to hex
+            string hex = toHex(offset, 4);
 
             // add to machineCodes
-            machineCodes[lineNo] += binary;
+            machineCodes[lineNo] += hex;
         }
         for (auto a : jumpLabelCalls) {
             string label = a.first;
             int lineNo = a.second;
             int offset = labelLineNo[label];
 
-            // convert to binary
-            string binary = toBinary(offset, 8);
+            // convert to hex
+            string hex = toHex(offset, 8);
 
             // add to machineCodes
-            machineCodes[lineNo] += binary + "0000";
+            machineCodes[lineNo] += hex + "0";
         }
 
         ofstream fout("machine.txt");
+        fout << "v2.0 raw" << endl;
         for (string m : machineCodes) {
             fout << m << endl;
         }
