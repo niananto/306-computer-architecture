@@ -1,0 +1,181 @@
+
+PCJumpBranch.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         000000e6  00000000  00000000  00000054  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000000  00800060  00800060  0000013a  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .comment      00000030  00000000  00000000  0000013a  2**0
+                  CONTENTS, READONLY
+  3 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  0000016c  2**2
+                  CONTENTS, READONLY
+  4 .debug_aranges 00000020  00000000  00000000  000001a8  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_info   00000681  00000000  00000000  000001c8  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_abbrev 00000586  00000000  00000000  00000849  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_line   000002b0  00000000  00000000  00000dcf  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_frame  00000024  00000000  00000000  00001080  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_str    000003a1  00000000  00000000  000010a4  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_loc    000000fa  00000000  00000000  00001445  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_ranges 00000010  00000000  00000000  0000153f  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	0c 94 2a 00 	jmp	0x54	; 0x54 <__ctors_end>
+   4:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+   8:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+   c:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  10:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  14:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  18:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  1c:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  20:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  24:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  28:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  2c:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  30:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  34:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  38:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  3c:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  40:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  44:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  48:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  4c:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  50:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+
+00000054 <__ctors_end>:
+  54:	11 24       	eor	r1, r1
+  56:	1f be       	out	0x3f, r1	; 63
+  58:	cf e5       	ldi	r28, 0x5F	; 95
+  5a:	d8 e0       	ldi	r29, 0x08	; 8
+  5c:	de bf       	out	0x3e, r29	; 62
+  5e:	cd bf       	out	0x3d, r28	; 61
+  60:	0e 94 36 00 	call	0x6c	; 0x6c <main>
+  64:	0c 94 71 00 	jmp	0xe2	; 0xe2 <_exit>
+
+00000068 <__bad_interrupt>:
+  68:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+
+0000006c <main>:
+#include <avr/io.h>
+#include <util/delay.h>
+
+int main(void)
+{
+	DDRB = 0x00;
+  6c:	17 ba       	out	0x17, r1	; 23
+	DDRA = 0xFF;
+  6e:	8f ef       	ldi	r24, 0xFF	; 255
+  70:	8a bb       	out	0x1a, r24	; 26
+	DDRD = 0x00;
+  72:	11 ba       	out	0x11, r1	; 17
+	DDRC = 0x00;
+  74:	14 ba       	out	0x14, r1	; 20
+	MCUSR = (1<<JTD);
+  76:	80 e8       	ldi	r24, 0x80	; 128
+  78:	84 bf       	out	0x34, r24	; 52
+	MCUSR = (1<<JTD);
+  7a:	84 bf       	out	0x34, r24	; 52
+	
+	unsigned char prev_clk = 0;
+	unsigned char pc = 0;
+  7c:	e0 e0       	ldi	r30, 0x00	; 0
+	DDRD = 0x00;
+	DDRC = 0x00;
+	MCUSR = (1<<JTD);
+	MCUSR = (1<<JTD);
+	
+	unsigned char prev_clk = 0;
+  7e:	70 e0       	ldi	r23, 0x00	; 0
+  80:	01 c0       	rjmp	.+2      	; 0x84 <main+0x18>
+  82:	78 2f       	mov	r23, r24
+	unsigned char pc = 0;
+    /* Replace with your application code */
+    while (1) {
+		unsigned char curr_clk = (PIND >> 7) & 1;
+  84:	80 b3       	in	r24, 0x10	; 16
+  86:	88 1f       	adc	r24, r24
+  88:	88 27       	eor	r24, r24
+  8a:	88 1f       	adc	r24, r24
+		unsigned char jmpAddress = PINB;
+  8c:	66 b3       	in	r22, 0x16	; 22
+		unsigned char immediate = PIND & 15;
+  8e:	90 b3       	in	r25, 0x10	; 16
+  90:	59 2f       	mov	r21, r25
+  92:	5f 70       	andi	r21, 0x0F	; 15
+		unsigned char jump = (PIND >> 6) & 1;
+  94:	90 b3       	in	r25, 0x10	; 16
+  96:	96 fb       	bst	r25, 6
+  98:	99 27       	eor	r25, r25
+  9a:	90 f9       	bld	r25, 0
+		unsigned char branch = (PIND >> 5) & 1;
+  9c:	20 b3       	in	r18, 0x10	; 16
+  9e:	25 fb       	bst	r18, 5
+  a0:	22 27       	eor	r18, r18
+  a2:	20 f9       	bld	r18, 0
+		unsigned char bneq = (PIND >> 4) & 1;
+  a4:	30 b3       	in	r19, 0x10	; 16
+  a6:	34 fb       	bst	r19, 4
+  a8:	44 27       	eor	r20, r20
+  aa:	40 f9       	bld	r20, 0
+		unsigned char ALUzero = PINC & 1;
+  ac:	33 b3       	in	r19, 0x13	; 19
+  ae:	31 70       	andi	r19, 0x01	; 1
+		if(curr_clk ==1 && prev_clk==0){
+  b0:	81 30       	cpi	r24, 0x01	; 1
+  b2:	39 f7       	brne	.-50     	; 0x82 <main+0x16>
+  b4:	71 11       	cpse	r23, r1
+  b6:	e5 cf       	rjmp	.-54     	; 0x82 <main+0x16>
+			pc = pc + 1;
+  b8:	71 e0       	ldi	r23, 0x01	; 1
+  ba:	7e 0f       	add	r23, r30
+			if(branch){
+  bc:	22 23       	and	r18, r18
+  be:	11 f0       	breq	.+4      	; 0xc4 <main+0x58>
+				if(ALUzero!=bneq){
+  c0:	43 13       	cpse	r20, r19
+					pc = pc + immediate;
+  c2:	75 0f       	add	r23, r21
+				}
+			}
+			if(jump){
+  c4:	91 11       	cpse	r25, r1
+  c6:	01 c0       	rjmp	.+2      	; 0xca <main+0x5e>
+  c8:	67 2f       	mov	r22, r23
+				pc = jmpAddress;
+			}
+			PORTA = pc;
+  ca:	6b bb       	out	0x1b, r22	; 27
+	#else
+		//round up by default
+		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+	#endif
+
+	__builtin_avr_delay_cycles(__ticks_dc);
+  cc:	2f e3       	ldi	r18, 0x3F	; 63
+  ce:	32 e4       	ldi	r19, 0x42	; 66
+  d0:	9f e0       	ldi	r25, 0x0F	; 15
+  d2:	21 50       	subi	r18, 0x01	; 1
+  d4:	30 40       	sbci	r19, 0x00	; 0
+  d6:	90 40       	sbci	r25, 0x00	; 0
+  d8:	e1 f7       	brne	.-8      	; 0xd2 <main+0x66>
+  da:	00 c0       	rjmp	.+0      	; 0xdc <main+0x70>
+  dc:	00 00       	nop
+  de:	e6 2f       	mov	r30, r22
+  e0:	d0 cf       	rjmp	.-96     	; 0x82 <main+0x16>
+
+000000e2 <_exit>:
+  e2:	f8 94       	cli
+
+000000e4 <__stop_program>:
+  e4:	ff cf       	rjmp	.-2      	; 0xe4 <__stop_program>

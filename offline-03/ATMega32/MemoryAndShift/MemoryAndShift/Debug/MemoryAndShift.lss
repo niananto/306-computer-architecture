@@ -1,0 +1,234 @@
+
+MemoryAndShift.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         0000012c  00000000  00000000  00000074  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000000  00800060  00800060  000001a0  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000010  00800060  00800060  000001a0  2**0
+                  ALLOC
+  3 .comment      00000030  00000000  00000000  000001a0  2**0
+                  CONTENTS, READONLY
+  4 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  000001d0  2**2
+                  CONTENTS, READONLY
+  5 .debug_aranges 00000020  00000000  00000000  0000020c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_info   000006e7  00000000  00000000  0000022c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_abbrev 000005ab  00000000  00000000  00000913  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_line   000002de  00000000  00000000  00000ebe  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_frame  00000024  00000000  00000000  0000119c  2**2
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_str    000003dc  00000000  00000000  000011c0  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_loc    00000182  00000000  00000000  0000159c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 12 .debug_ranges 00000010  00000000  00000000  0000171e  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	0c 94 2a 00 	jmp	0x54	; 0x54 <__ctors_end>
+   4:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+   8:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+   c:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  10:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  14:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  18:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  1c:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  20:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  24:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  28:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  2c:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  30:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  34:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  38:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  3c:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  40:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  44:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  48:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  4c:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+  50:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
+
+00000054 <__ctors_end>:
+  54:	11 24       	eor	r1, r1
+  56:	1f be       	out	0x3f, r1	; 63
+  58:	cf e5       	ldi	r28, 0x5F	; 95
+  5a:	d8 e0       	ldi	r29, 0x08	; 8
+  5c:	de bf       	out	0x3e, r29	; 62
+  5e:	cd bf       	out	0x3d, r28	; 61
+
+00000060 <__do_clear_bss>:
+  60:	20 e0       	ldi	r18, 0x00	; 0
+  62:	a0 e6       	ldi	r26, 0x60	; 96
+  64:	b0 e0       	ldi	r27, 0x00	; 0
+  66:	01 c0       	rjmp	.+2      	; 0x6a <.do_clear_bss_start>
+
+00000068 <.do_clear_bss_loop>:
+  68:	1d 92       	st	X+, r1
+
+0000006a <.do_clear_bss_start>:
+  6a:	a0 37       	cpi	r26, 0x70	; 112
+  6c:	b2 07       	cpc	r27, r18
+  6e:	e1 f7       	brne	.-8      	; 0x68 <.do_clear_bss_loop>
+  70:	0e 94 3e 00 	call	0x7c	; 0x7c <main>
+  74:	0c 94 94 00 	jmp	0x128	; 0x128 <_exit>
+
+00000078 <__bad_interrupt>:
+  78:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+
+0000007c <main>:
+
+unsigned char data[16];
+
+int main(void)
+{
+	DDRB = 0xFF;
+  7c:	8f ef       	ldi	r24, 0xFF	; 255
+  7e:	87 bb       	out	0x17, r24	; 23
+	DDRD = 0xC0;
+  80:	90 ec       	ldi	r25, 0xC0	; 192
+  82:	91 bb       	out	0x11, r25	; 17
+	DDRA = 0xFF;
+  84:	8a bb       	out	0x1a, r24	; 26
+	DDRC = 0x00;
+  86:	14 ba       	out	0x14, r1	; 20
+	MCUSR = 1 << JTD;
+  88:	80 e8       	ldi	r24, 0x80	; 128
+  8a:	84 bf       	out	0x34, r24	; 52
+	MCUSR = 1 << JTD;
+  8c:	84 bf       	out	0x34, r24	; 52
+	
+	unsigned char prev_clk = 0;
+  8e:	b0 e0       	ldi	r27, 0x00	; 0
+  90:	01 c0       	rjmp	.+2      	; 0x94 <main+0x18>
+  92:	b3 2f       	mov	r27, r19
+
+    while (1) 
+    {
+		unsigned char alu = PINB & 15;
+  94:	26 b3       	in	r18, 0x16	; 22
+  96:	2f 70       	andi	r18, 0x0F	; 15
+		unsigned char dataWrite = (PINB >> 4) & 15;		//READ REG 2
+  98:	86 b3       	in	r24, 0x16	; 22
+  9a:	78 2f       	mov	r23, r24
+  9c:	72 95       	swap	r23
+  9e:	7f 70       	andi	r23, 0x0F	; 15
+		unsigned char memRead = (PIND) & 1;
+  a0:	80 b3       	in	r24, 0x10	; 16
+		unsigned char memWrite = (PIND >> 1) & 1;
+  a2:	40 b3       	in	r20, 0x10	; 16
+  a4:	46 95       	lsr	r20
+  a6:	41 70       	andi	r20, 0x01	; 1
+		unsigned char shiftControl = (PIND >> 2) & 1;
+  a8:	50 b3       	in	r21, 0x10	; 16
+  aa:	52 fb       	bst	r21, 2
+  ac:	55 27       	eor	r21, r21
+  ae:	50 f9       	bld	r21, 0
+		unsigned char shiftRight = (PIND >> 3) & 1;
+  b0:	90 b3       	in	r25, 0x10	; 16
+  b2:	93 fb       	bst	r25, 3
+  b4:	99 27       	eor	r25, r25
+  b6:	90 f9       	bld	r25, 0
+		unsigned char shamt = (PINC >> 4) & 15;
+  b8:	63 b3       	in	r22, 0x13	; 19
+  ba:	62 95       	swap	r22
+  bc:	6f 70       	andi	r22, 0x0F	; 15
+		unsigned char shiftData = (PINC) & 15;			//READ REG1
+  be:	83 b3       	in	r24, 0x13	; 19
+  c0:	8f 70       	andi	r24, 0x0F	; 15
+		unsigned char memToReg = (PIND >> 4) & 1;
+  c2:	a0 b3       	in	r26, 0x10	; 16
+		unsigned char clk = (PIND >> 5) & 1;
+  c4:	30 b3       	in	r19, 0x10	; 16
+  c6:	35 fb       	bst	r19, 5
+  c8:	33 27       	eor	r19, r19
+  ca:	30 f9       	bld	r19, 0
+		unsigned char dataOut = data[alu];
+  cc:	e2 2f       	mov	r30, r18
+  ce:	f0 e0       	ldi	r31, 0x00	; 0
+  d0:	ef 01       	movw	r28, r30
+  d2:	c0 5a       	subi	r28, 0xA0	; 160
+  d4:	df 4f       	sbci	r29, 0xFF	; 255
+  d6:	c8 81       	ld	r28, Y
+		
+		if(memToReg == 0){
+  d8:	a4 fd       	sbrc	r26, 4
+		unsigned char shiftRight = (PIND >> 3) & 1;
+		unsigned char shamt = (PINC >> 4) & 15;
+		unsigned char shiftData = (PINC) & 15;			//READ REG1
+		unsigned char memToReg = (PIND >> 4) & 1;
+		unsigned char clk = (PIND >> 5) & 1;
+		unsigned char dataOut = data[alu];
+  da:	2c 2f       	mov	r18, r28
+			dataOut = alu;		
+		}
+		
+		unsigned char shiftResult = shiftData;
+		
+		if(shiftRight)shiftResult = shiftResult >> shamt;
+  dc:	99 23       	and	r25, r25
+  de:	39 f0       	breq	.+14     	; 0xee <main+0x72>
+  e0:	90 e0       	ldi	r25, 0x00	; 0
+  e2:	02 c0       	rjmp	.+4      	; 0xe8 <main+0x6c>
+  e4:	95 95       	asr	r25
+  e6:	87 95       	ror	r24
+  e8:	6a 95       	dec	r22
+  ea:	e2 f7       	brpl	.-8      	; 0xe4 <main+0x68>
+  ec:	04 c0       	rjmp	.+8      	; 0xf6 <main+0x7a>
+		else shiftResult = shiftResult << shamt;
+  ee:	01 c0       	rjmp	.+2      	; 0xf2 <main+0x76>
+  f0:	88 0f       	add	r24, r24
+  f2:	6a 95       	dec	r22
+  f4:	ea f7       	brpl	.-6      	; 0xf0 <main+0x74>
+		
+		if(shiftControl){
+  f6:	51 11       	cpse	r21, r1
+  f8:	01 c0       	rjmp	.+2      	; 0xfc <main+0x80>
+  fa:	82 2f       	mov	r24, r18
+			dataOut = shiftResult;
+		}
+		
+		PORTA = (dataOut << 4);
+  fc:	82 95       	swap	r24
+  fe:	80 7f       	andi	r24, 0xF0	; 240
+ 100:	8b bb       	out	0x1b, r24	; 27
+		
+		if(memWrite && (prev_clk == 0 && clk == 1)){
+ 102:	44 23       	and	r20, r20
+ 104:	31 f2       	breq	.-116    	; 0x92 <main+0x16>
+ 106:	b1 11       	cpse	r27, r1
+ 108:	c4 cf       	rjmp	.-120    	; 0x92 <main+0x16>
+ 10a:	31 30       	cpi	r19, 0x01	; 1
+ 10c:	11 f6       	brne	.-124    	; 0x92 <main+0x16>
+			data[alu] = dataWrite;
+ 10e:	e0 5a       	subi	r30, 0xA0	; 160
+ 110:	ff 4f       	sbci	r31, 0xFF	; 255
+ 112:	70 83       	st	Z, r23
+	#else
+		//round up by default
+		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+	#endif
+
+	__builtin_avr_delay_cycles(__ticks_dc);
+ 114:	2f e3       	ldi	r18, 0x3F	; 63
+ 116:	8d e0       	ldi	r24, 0x0D	; 13
+ 118:	93 e0       	ldi	r25, 0x03	; 3
+ 11a:	21 50       	subi	r18, 0x01	; 1
+ 11c:	80 40       	sbci	r24, 0x00	; 0
+ 11e:	90 40       	sbci	r25, 0x00	; 0
+ 120:	e1 f7       	brne	.-8      	; 0x11a <main+0x9e>
+ 122:	00 c0       	rjmp	.+0      	; 0x124 <main+0xa8>
+ 124:	00 00       	nop
+ 126:	b5 cf       	rjmp	.-150    	; 0x92 <main+0x16>
+
+00000128 <_exit>:
+ 128:	f8 94       	cli
+
+0000012a <__stop_program>:
+ 12a:	ff cf       	rjmp	.-2      	; 0x12a <__stop_program>
