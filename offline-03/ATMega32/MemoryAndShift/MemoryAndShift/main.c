@@ -13,12 +13,13 @@ unsigned char data[16];
 
 int main(void)
 {
-	DDRB = 0xFF;
+	DDRB = 0x00;
 	DDRD = 0xC0;
 	DDRA = 0xFF;
 	DDRC = 0x00;
-	MCUSR = 1 << JTD;
-	MCUSR = 1 << JTD;
+	MCUCSR = 1 << JTD;
+	MCUCSR = 1 << JTD;
+	MCUCSR = 1 << JTD;
 	
 	unsigned char prev_clk = 0;
 

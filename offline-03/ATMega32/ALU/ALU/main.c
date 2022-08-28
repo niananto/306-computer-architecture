@@ -3,7 +3,7 @@
  *
  * Created: 26-Aug-22 11:59:08 AM
  * Author : redwa
- */ 
+ */
 
 #include <avr/io.h>
 
@@ -18,19 +18,19 @@
 int main(void)
 {
     /* Replace with your application code */
-    DDRB = 0x00;
+    	DDRB = 0x00;
 	DDRC = 0x00;
 	DDRA = 0xFF;
-	
-	MCUSR = (1<<JTD);
-	MCUSR = (1<<JTD);
-	
-	while (1) 
+
+	MCUCSR = (1<<JTD);
+	MCUCSR = (1<<JTD);
+
+	while (1)
     {
-		unsigned char aluOP = PINC & 63;
-		unsigned char input1 = PINB & 15;
-		unsigned char input2 = (PINB >> 4) & 15;
-		
+		unsigned char aluOP = PINC & 63;  //6bit aluop C5 - C0
+		unsigned char input1 = PINB & 15;   //B3 - B0
+		unsigned char input2 = (PINB >> 4) & 15; //B7-B4
+
 		unsigned char result = input1;
 		if(aluOP == ADD_){
 			result = input1 + input2;
@@ -47,11 +47,12 @@ int main(void)
 		if(aluOP == NOR_){
 			result = (~(input1 | input2)) & 15;
 		}
-		
+		result = result & 15;
+
 		if(result == 0){
-			result |= (1 << 5);	
+			result |= (1 << 4);
 		}
-		
+
 		PORTA = result;
 	}
 }
